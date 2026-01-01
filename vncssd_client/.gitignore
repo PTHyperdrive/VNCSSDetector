@@ -1,0 +1,33 @@
+# Dependencies
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# Secrets
+*.env
+*.keystore
+*.jks
+key.properties
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+
+# Coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db

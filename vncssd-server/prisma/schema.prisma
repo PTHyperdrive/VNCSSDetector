@@ -1,0 +1,256 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== RBAC & Multi-tenancy ====================
+
+model Role {
+  id          Int                @id @default(autoincrement())
+  name        String             @unique @db.VarChar(50)
+  permissions Json               @default("{}")
+  users       UserWorkspace[]
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model User {
+  id            String          @id @default(uuid()) @db.Uuid
+  email         String          @unique @db.VarChar(255)
+  passwordHash  String          @map("password_hash") @db.VarChar(255)
+  name          String          @db.VarChar(100)
+  isActive      Boolean         @default(true) @map("is_active")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  
+  workspaces    UserWorkspace[]
+  deviceTokens  DeviceToken[]
+  notifications Notification[]
+  commands      Command[]       @relation("IssuedCommands")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String          @db.VarChar(100)
+  slug      String          @unique @db.VarChar(100)
+  settings  Json            @default("{}")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  
+  users     UserWorkspace[]
+  nodes     Node[]
+  apiKeys   ApiKey[]
+
+  @@map("workspaces")
+}
+
+model UserWorkspace {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  roleId      Int       @map("role_id")
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, workspaceId])
+  @@map("users_workspaces")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ==================== Nodes ====================
+
+enum NodeStatus {
+  ONLINE
+  OFFLINE
+  DEGRADED
+  PENDING
+}
+
+model Node {
+  id           String      @id @default(uuid()) @db.Uuid
+  nodeKey      String      @unique @map("node_key") @db.VarChar(100)
+  workspaceId  String      @map("workspace_id") @db.Uuid
+  hostname     String      @db.VarChar(255)
+  ipAddress    String?     @map("ip_address") @db.VarChar(45)
+  os           String?     @db.VarChar(100)
+  version      String?     @db.VarChar(50)
+  status       NodeStatus  @default(PENDING)
+  tags         String[]    @default([])
+  capabilities String[]    @default([])
+  metadata     Json        @default("{}")
+  // Location for map display
+  latitude     Float?      @map("latitude")
+  longitude    Float?      @map("longitude")
+  locationName String?     @map("location_name") @db.VarChar(255)
+  lastSeen     DateTime?   @map("last_seen")
+  registeredAt DateTime    @default(now()) @map("registered_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  
+  workspace    Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  metrics      NodeMetric[]
+  events       NodeEvent[]
+  commands     Command[]
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([lastSeen])
+  @@map("nodes")
+}
+
+model NodeMetric {
+  id         BigInt   @id @default(autoincrement())
+  nodeId     String   @map("node_id") @db.Uuid
+  metrics    Json     @default("{}")
+  recordedAt DateTime @default(now()) @map("recorded_at")
+  
+  node       Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, recordedAt(sort: Desc)])
+  @@map("node_metrics")
+}
+
+enum EventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model NodeEvent {
+  id         BigInt        @id @default(autoincrement())
+  nodeId     String        @map("node_id") @db.Uuid
+  eventType  String        @map("event_type") @db.VarChar(100)
+  severity   EventSeverity @default(LOW)
+  message    String        @db.Text
+  data       Json          @default("{}")
+  occurredAt DateTime      @default(now()) @map("occurred_at")
+  
+  node       Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@index([nodeId, occurredAt(sort: Desc)])
+  @@index([severity])
+  @@map("node_events")
+}
+
+// ==================== Commands ====================
+
+enum CommandStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  RUNNING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+model Command {
+  id          String        @id @default(uuid()) @db.Uuid
+  nodeId      String        @map("node_id") @db.Uuid
+  issuedById  String        @map("issued_by") @db.Uuid
+  commandType String        @map("command_type") @db.VarChar(100)
+  payload     Json          @default("{}")
+  status      CommandStatus @default(PENDING)
+  issuedAt    DateTime      @default(now()) @map("issued_at")
+  expiresAt   DateTime?     @map("expires_at")
+  
+  node        Node          @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  issuedBy    User          @relation("IssuedCommands", fields: [issuedById], references: [id])
+  result      CommandResult?
+
+  @@index([nodeId, status])
+  @@map("commands")
+}
+
+model CommandResult {
+  id         String   @id @default(uuid()) @db.Uuid
+  commandId  String   @unique @map("command_id") @db.Uuid
+  status     String   @db.VarChar(50)
+  result     Json     @default("{}")
+  receivedAt DateTime @default(now()) @map("received_at")
+  
+  command    Command  @relation(fields: [commandId], references: [id], onDelete: Cascade)
+
+  @@map("command_results")
+}
+
+// ==================== Notifications ====================
+
+model DeviceToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  fcmToken   String   @unique @map("fcm_token") @db.VarChar(500)
+  deviceInfo String?  @map("device_info") @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model Notification {
+  id     BigInt   @id @default(autoincrement())
+  userId String   @map("user_id") @db.Uuid
+  title  String   @db.VarChar(255)
+  body   String   @db.Text
+  type   String   @db.VarChar(50)
+  data   Json     @default("{}")
+  isRead Boolean  @default(false) @map("is_read")
+  sentAt DateTime @default(now()) @map("sent_at")
+  readAt DateTime? @map("read_at")
+  
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ==================== API Keys ====================
+
+model ApiKey {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  name        String    @db.VarChar(100)
+  keyHash     String    @unique @map("key_hash") @db.VarChar(255)
+  prefix      String    @db.VarChar(16)  // For display "vnc_xxx..."
+  permissions Json      @default("{}")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastUsedAt  DateTime? @map("last_used_at")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("api_keys")
+}
+
