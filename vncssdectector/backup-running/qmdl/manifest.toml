@@ -1,0 +1,74 @@
+[[entries]]
+name = "1762578450"
+start_time = "2025-11-08T05:07:30.366552377Z"
+last_message_time = "2025-11-08T05:15:18.056143240Z"
+qmdl_size_bytes = 8821
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "19"
+start_time = "1970-01-01T00:00:19.178684109Z"
+last_message_time = "1970-01-01T00:00:29.700584631Z"
+qmdl_size_bytes = 2622
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762609938"
+start_time = "2025-11-08T13:52:18.641288553Z"
+last_message_time = "2025-11-08T13:52:46.212450886Z"
+qmdl_size_bytes = 4380
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762609967"
+start_time = "2025-11-08T13:52:47.838332969Z"
+last_message_time = "2025-11-08T14:04:01.405490576Z"
+qmdl_size_bytes = 5327
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762611840"
+start_time = "2025-11-08T14:24:00.218894346Z"
+last_message_time = "2025-11-08T15:03:29.453503182Z"
+qmdl_size_bytes = 31014
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762614629"
+start_time = "2025-11-08T15:10:29.476405636Z"
+last_message_time = "2025-11-08T15:46:10.834099350Z"
+qmdl_size_bytes = 20075
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762620365"
+start_time = "2025-11-08T16:46:05.272950105Z"
+last_message_time = "2025-11-08T16:51:48.638044714Z"
+qmdl_size_bytes = 2325
+vncssdetector_version = "0.8.0"
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762621145"
+start_time = "2025-11-08T16:59:05.251660016Z"
+last_message_time = "2025-11-08T17:02:28.775335407Z"
+qmdl_size_bytes = 2493
+vncssdetector_version = "0.8.0"
+system_os = "Linux 3.10.28"
+arch = "armv7l"
+
+[[entries]]
+name = "1762623202"
+start_time = "2025-11-08T17:33:22.220739803Z"
+last_message_time = "2025-11-08T17:48:24.375005396Z"
+qmdl_size_bytes = 15698
+vncssdetector_version = "0.8.0"
+system_os = "Linux 3.10.28"
+arch = "armv7l"

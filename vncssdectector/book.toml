@@ -1,0 +1,8 @@
+[book]
+authors = ["The VNCSSdetector Team"]
+language = "en"
+src = "doc"
+title = "VNCSSdetector - An IMSI Catcher Catcher"
+
+[output.html]
+edit-url-template = "https://github.com/EFForg/vncssdetector/edit/main/{path}"

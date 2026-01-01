@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+
+@theme {
+    --color-vncssdetector-blue: #4e4eb1;
+    --color-vncssdetector-dark-blue: #3f3da0;
+    --color-vncssdetector-green: #94ea18;
+}

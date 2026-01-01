@@ -1,0 +1,38 @@
+# VNCSSdetector Configuration for Sony Xperia 5 (Snapdragon 855)
+qmdl_store_path = "/data/vncssdetector/qmdl"
+port = 8080
+debug_mode = false
+colorblind_mode = false
+
+# Device type - commented out to use default
+# For Android phones, the device-specific features (display controls) won't work
+# but the core IMSI catcher detection will function normally
+# Supported: orbic, tplink, tmobile, wingtech, pinephone, msm8916
+#device = "orbic"
+
+# UI Level (for devices with displays)
+# 0 = invisible mode
+# 1 = Subtle mode (recommended)
+# 2 = Demo mode
+# 3 = Logo mode
+ui_level = 0
+
+# Key input mode
+# 0 = no button interaction
+# 1 = double-tap power button to toggle recording
+key_input_mode = 0
+
+# Notification settings (optional)
+# Set ntfy_url to enable push notifications
+ntfy_url = ""
+enabled_notifications = ["Warning", "LowBattery"]
+
+# Analyzer Configuration - IMSI catcher detection heuristics
+[analyzers]
+imsi_requested = true
+connection_redirect_2g_downgrade = true
+lte_sib6_and_7_downgrade = true
+null_cipher = true
+nas_null_cipher = true
+incomplete_sib = true
+test_analyzer = false

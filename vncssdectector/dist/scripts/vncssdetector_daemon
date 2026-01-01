@@ -1,0 +1,29 @@
+#! /bin/sh
+
+set -e
+
+case "$1" in
+start)
+    echo -n "Starting vncssdetector: "
+    # Below line may be replaced by the installer with device-specific startup commands, such as mounting the SD card.
+    #VNCSSDETECTOR-PRESTART
+    start-stop-daemon -S -b --make-pidfile --pidfile /tmp/vncssdetector.pid \
+    --startas /bin/sh -- -c "RUST_LOG=info exec /data/vncssdetector/vncssdetector-daemon /data/vncssdetector/config.toml > /data/vncssdetector/vncssdetector.log 2>&1"
+    echo "done"
+    ;;
+  stop)
+    echo -n "Stopping vncssdetector: "
+    start-stop-daemon -K -p /tmp/vncssdetector.pid
+    echo "done"
+    ;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+    echo "Usage vncssdetector_daemon { start | stop | restart }" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
