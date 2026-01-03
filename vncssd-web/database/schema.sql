@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS system_logs (
     level ENUM('debug', 'info', 'warning', 'error') NOT NULL,
     source VARCHAR(100) NOT NULL,
     message TEXT NOT NULL,
-    metadata JSON,
+    extra_data JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (node_id) REFERENCES nodes(id) ON DELETE CASCADE,
     INDEX idx_node_id (node_id),

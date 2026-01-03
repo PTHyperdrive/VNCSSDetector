@@ -227,7 +227,7 @@ class NodeWebSocketHandler:
                         level=LogLevel(data.get("level", "info")),
                         source=data.get("source", "node"),
                         message=data.get("message", ""),
-                        metadata=data.get("metadata")
+                        extra_data=data.get("metadata")
                     )
                     db.add(log)
                     await db.commit()

@@ -36,7 +36,7 @@ class SystemLog(Base):
     )
     source: Mapped[str] = mapped_column(String(100), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON)
+    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, 
         server_default=func.now(), 
