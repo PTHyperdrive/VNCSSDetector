@@ -1,0 +1,28 @@
+[Unit]
+Description=VNCSSDetector Web Service
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=exec
+User=vncssd
+Group=vncssd
+WorkingDirectory=/opt/vncssd-web/backend
+Environment="PATH=/opt/vncssd-web/backend/venv/bin"
+EnvironmentFile=/opt/vncssd-web/backend/.env
+ExecStart=/opt/vncssd-web/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/vncssd /opt/vncssd-web/backend
+
+[Install]
+WantedBy=multi-user.target
