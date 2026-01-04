@@ -13,6 +13,7 @@
     const navItems: NavItem[] = [
         { href: "/", label: "Dashboard", icon: "home" },
         { href: "/nodes", label: "Nodes", icon: "server" },
+        { href: "/topology", label: "Topology", icon: "map" },
         { href: "/recordings", label: "Bản ghi", icon: "document" },
         { href: "/alerts", label: "Cảnh báo", icon: "bell" },
         {
@@ -106,6 +107,20 @@
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                            />
+                        </svg>
+                    {:else if item.icon === "map"}
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
                             />
                         </svg>
                     {:else if item.icon === "document"}
