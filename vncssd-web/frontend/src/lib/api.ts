@@ -1,64 +1,39 @@
 /**
  * API client for VNCSSDetector Web Service
+ * Uses session cookies for authentication (no localStorage needed)
  */
 
 const API_BASE = '/api';
 
-interface ApiError {
-    detail: string;
-}
-
 class ApiClient {
-    private token: string | null = null;
-
-    setToken(token: string | null) {
-        this.token = token;
-        if (token) {
-            localStorage.setItem('access_token', token);
-        } else {
-            localStorage.removeItem('access_token');
-        }
-    }
-
-    getToken(): string | null {
-        if (!this.token) {
-            this.token = localStorage.getItem('access_token');
-        }
-        return this.token;
-    }
-
     private async request<T>(
         endpoint: string,
         options: RequestInit = {}
     ): Promise<T> {
-        const token = this.getToken();
-
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
             ...options.headers
         };
 
-        if (token) {
-            (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-        }
-
         const response = await fetch(`${API_BASE}${endpoint}`, {
             ...options,
-            headers
+            headers,
+            credentials: 'include' // Important: send cookies with requests
         });
 
         if (!response.ok) {
             if (response.status === 401) {
-                // Don't redirect here - let the auth store/layout handle it
-                // This prevents redirect loops
-                this.setToken(null);
+                // Redirect to login if not authenticated
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
                 throw new Error('Unauthorized');
             }
 
             const errorData = await response.json().catch(() => ({
                 detail: 'An error occurred'
             }));
-            // Handle various error formats from FastAPI
+
             let errorMessage = 'An error occurred';
             if (typeof errorData.detail === 'string') {
                 errorMessage = errorData.detail;
@@ -79,28 +54,31 @@ class ApiClient {
         return response.json();
     }
 
-    // Authentication
+    // Authentication - cookies are handled automatically by browser
     async login(email: string, password: string) {
-        const data = await this.request<{
-            access_token: string;
-            refresh_token: string;
+        return this.request<{
+            success: boolean;
+            message: string;
+            user: User;
         }>('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
         });
-        this.setToken(data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
-        return data;
     }
 
     async logout() {
         await this.request('/auth/logout', { method: 'POST' }).catch(() => { });
-        this.setToken(null);
-        localStorage.removeItem('refresh_token');
     }
 
     async getCurrentUser() {
         return this.request<User>('/auth/me');
+    }
+
+    async checkAuth() {
+        return this.request<{
+            authenticated: boolean;
+            user?: User;
+        }>('/auth/check');
     }
 
     // Dashboard

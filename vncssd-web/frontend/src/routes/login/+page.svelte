@@ -1,6 +1,6 @@
 <script lang="ts">
     import { auth } from "$lib/stores/auth";
-    import { api } from "$lib/api";
+    import { goto } from "$app/navigation";
 
     let email = $state("");
     let password = $state("");
@@ -16,15 +16,9 @@
             const result = await auth.login(email, password);
 
             if (result.success) {
-                // Verify token was stored
-                const token = api.getToken();
-                if (token) {
-                    // Small delay to ensure localStorage is persisted
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                    window.location.href = "/";
-                } else {
-                    error = "Lỗi lưu token. Vui lòng thử lại.";
-                }
+                // Cookie is automatically set by the server
+                // Just redirect to dashboard
+                goto("/");
             } else {
                 // Display error message (Vietnamese)
                 if (
@@ -55,119 +49,129 @@
 </svelte:head>
 
 <div
-    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 to-primary-900 px-4"
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800"
 >
-    <div class="max-w-md w-full">
-        <!-- Logo -->
+    <div class="w-full max-w-md">
+        <!-- Logo & Title -->
         <div class="text-center mb-8">
             <div
-                class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-4"
+                class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow-lg"
             >
                 <svg
-                    class="w-10 h-10 text-primary-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-blue-600"
+                    fill="none"
                     viewBox="0 0 24 24"
-                    fill="currentColor"
+                    stroke="currentColor"
                 >
                     <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                     />
                 </svg>
             </div>
             <h1 class="text-3xl font-bold text-white">VNCSSDetector</h1>
-            <p class="text-primary-200 mt-2">
+            <p class="text-blue-200 mt-2">
                 Hệ thống phát hiện trạm thu phát giả mạo
             </p>
         </div>
 
-        <!-- Login Form -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-            <h2
-                class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-6"
-            >
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl shadow-2xl p-8">
+            <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">
                 Đăng Nhập
             </h2>
 
             {#if error}
                 <div
-                    class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6 animate-fade-in"
+                    class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4"
                 >
-                    <p class="text-red-800 dark:text-red-200 text-sm">
-                        {error}
-                    </p>
+                    {error}
                 </div>
             {/if}
 
-            <form onsubmit={handleSubmit} class="space-y-6">
+            <form onsubmit={handleSubmit} class="space-y-5">
                 <div>
-                    <label for="email" class="label">Email</label>
+                    <label
+                        for="email"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Email
+                    </label>
                     <input
                         type="email"
                         id="email"
                         bind:value={email}
-                        class="input"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="admin@vncssd.notrespond.com"
                         required
-                        disabled={loading}
                     />
                 </div>
 
                 <div>
-                    <label for="password" class="label">Mật khẩu</label>
+                    <label
+                        for="password"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Mật khẩu
+                    </label>
                     <input
                         type="password"
                         id="password"
                         bind:value={password}
-                        class="input"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         placeholder="••••••••"
                         required
-                        disabled={loading}
                     />
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full btn-primary py-3 text-base"
                     disabled={loading}
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {#if loading}
-                        <svg
-                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        Đang đăng nhập...
+                        <span class="inline-flex items-center">
+                            <svg
+                                class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            Đang xử lý...
+                        </span>
                     {:else}
                         Đăng Nhập
                     {/if}
                 </button>
             </form>
 
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    Tài khoản mặc định: <code class="text-primary-600"
-                        >admin@vncssd.notrespond.com</code
-                    >
-                </p>
+            <div class="mt-6 text-center text-sm text-gray-500">
+                Tài khoản mặc định: <span class="text-blue-600"
+                    >admin@vncssd.notrespond.com</span
+                >
             </div>
         </div>
 
         <!-- Footer -->
-        <p class="text-center text-primary-200 text-sm mt-8">
-            © 2026 VNCSSDetector.
-        </p>
+        <div class="mt-6 text-center text-blue-200 text-sm">
+            <p>VNCSSDetector &copy; 2026</p>
+        </div>
     </div>
 </div>

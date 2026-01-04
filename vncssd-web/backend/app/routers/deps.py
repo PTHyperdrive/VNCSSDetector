@@ -1,38 +1,36 @@
 """
 VNCSSDetector Web Service - Authentication Dependencies
+Session-based authentication using HTTP-only cookies
 """
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
-
-# Bearer token security
-security = HTTPBearer()
+from app.routers.auth import get_session, SESSION_COOKIE_NAME
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME),
     db: AsyncSession = Depends(get_db)
 ) -> User:
-    """Get the current authenticated user from JWT token."""
+    """Get the current authenticated user from session cookie."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        detail="Not authenticated"
     )
     
-    token = credentials.credentials
-    token_data = AuthService.decode_token(token)
-    
-    if token_data is None or token_data.user_id is None:
+    if not session_id:
         raise credentials_exception
     
-    user = await AuthService.get_user_by_id(db, token_data.user_id)
+    session = get_session(session_id)
+    if not session:
+        raise credentials_exception
+    
+    user = await AuthService.get_user_by_id(db, session["user_id"])
     
     if user is None:
         raise credentials_exception
@@ -79,18 +77,15 @@ require_viewer = require_role([UserRole.ADMIN, UserRole.OPERATOR, UserRole.VIEWE
 
 
 async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME),
     db: AsyncSession = Depends(get_db)
 ) -> Optional[User]:
     """Get current user if authenticated, otherwise None."""
-    if credentials is None:
+    if not session_id:
         return None
     
-    token_data = AuthService.decode_token(credentials.credentials)
-    
-    if token_data is None or token_data.user_id is None:
+    session = get_session(session_id)
+    if not session:
         return None
     
-    return await AuthService.get_user_by_id(db, token_data.user_id)
+    return await AuthService.get_user_by_id(db, session["user_id"])

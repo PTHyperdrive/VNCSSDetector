@@ -1,5 +1,6 @@
 /**
- * Authentication store
+ * Authentication store - Session cookie based
+ * Browser handles cookies automatically, no manual token management
  */
 import { writable, derived } from 'svelte/store';
 import { api, type User } from '$lib/api';
@@ -21,17 +22,15 @@ function createAuthStore() {
         subscribe,
 
         async initialize() {
-            const token = api.getToken();
-            if (!token) {
-                set({ user: null, loading: false, initialized: true });
-                return;
-            }
-
             try {
-                const user = await api.getCurrentUser();
-                set({ user, loading: false, initialized: true });
+                // Check if we have a valid session
+                const result = await api.checkAuth();
+                if (result.authenticated && result.user) {
+                    set({ user: result.user, loading: false, initialized: true });
+                } else {
+                    set({ user: null, loading: false, initialized: true });
+                }
             } catch {
-                api.setToken(null);
                 set({ user: null, loading: false, initialized: true });
             }
         },
@@ -39,11 +38,12 @@ function createAuthStore() {
         async login(email: string, password: string) {
             update(s => ({ ...s, loading: true }));
             try {
-                // Just login and store the token
-                // The initialize() will fetch user data on next page load
-                await api.login(email, password);
-                update(s => ({ ...s, loading: false }));
-                return { success: true };
+                const result = await api.login(email, password);
+                if (result.success && result.user) {
+                    set({ user: result.user, loading: false, initialized: true });
+                    return { success: true };
+                }
+                return { success: false, error: 'Login failed' };
             } catch (error) {
                 update(s => ({ ...s, loading: false }));
                 return {

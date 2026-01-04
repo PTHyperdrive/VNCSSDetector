@@ -1,25 +1,70 @@
 """
 VNCSSDetector Web Service - Authentication Router
+Session-based authentication using HTTP-only cookies
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
+import secrets
+import json
+from datetime import datetime, timedelta
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import LoginRequest, Token, UserResponse, UserCreate
+from app.schemas.user import LoginRequest, UserResponse, UserCreate
 from app.services.auth_service import AuthService
-from app.routers.deps import get_current_user
 
 router = APIRouter()
 
+# In-memory session store (use Redis in production)
+sessions: dict[str, dict] = {}
 
-@router.post("/login", response_model=Token)
+SESSION_COOKIE_NAME = "vncssd_session"
+SESSION_MAX_AGE = 86400 * 7  # 7 days
+
+
+def create_session(user_id: int, email: str, role: str) -> str:
+    """Create a new session and return the session ID."""
+    session_id = secrets.token_urlsafe(32)
+    sessions[session_id] = {
+        "user_id": user_id,
+        "email": email,
+        "role": role,
+        "created_at": datetime.utcnow().isoformat(),
+        "expires_at": (datetime.utcnow() + timedelta(seconds=SESSION_MAX_AGE)).isoformat()
+    }
+    return session_id
+
+
+def get_session(session_id: str) -> Optional[dict]:
+    """Get session data by session ID."""
+    if session_id not in sessions:
+        return None
+    
+    session = sessions[session_id]
+    expires_at = datetime.fromisoformat(session["expires_at"])
+    
+    if datetime.utcnow() > expires_at:
+        del sessions[session_id]
+        return None
+    
+    return session
+
+
+def delete_session(session_id: str):
+    """Delete a session."""
+    if session_id in sessions:
+        del sessions[session_id]
+
+
+@router.post("/login")
 async def login(
     login_data: LoginRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Login with email and password to get access and refresh tokens.
+    Login with email and password. Sets HTTP-only session cookie.
     """
     user = await AuthService.authenticate_user(
         db, 
@@ -30,76 +75,63 @@ async def login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Incorrect email or password"
         )
     
-    # Create tokens
-    token_data = {
-        "sub": user.id,
-        "email": user.email,
-        "role": user.role.value
-    }
+    # Create session
+    session_id = create_session(user.id, user.email, user.role.value)
     
-    access_token = AuthService.create_access_token(token_data)
-    refresh_token = AuthService.create_refresh_token(token_data)
-    
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer"
+    # Set HTTP-only cookie
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_id,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=False  # Set to True in production with HTTPS
     )
+    
+    return {
+        "success": True,
+        "message": "Login successful",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role.value
+        }
+    }
 
 
-@router.post("/refresh", response_model=Token)
-async def refresh_token(
-    refresh_token: str,
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(
+    session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get a new access token using a refresh token.
+    Get information about the currently authenticated user.
     """
-    token_data = AuthService.decode_token(refresh_token)
-    
-    if not token_data or not token_data.user_id:
+    if not session_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
+            detail="Not authenticated"
         )
     
-    user = await AuthService.get_user_by_id(db, token_data.user_id)
+    session = get_session(session_id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired or invalid"
+        )
     
+    user = await AuthService.get_user_by_id(db, session["user_id"])
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive"
         )
     
-    # Create new tokens
-    new_token_data = {
-        "sub": user.id,
-        "email": user.email,
-        "role": user.role.value
-    }
-    
-    new_access_token = AuthService.create_access_token(new_token_data)
-    new_refresh_token = AuthService.create_refresh_token(new_token_data)
-    
-    return Token(
-        access_token=new_access_token,
-        refresh_token=new_refresh_token,
-        token_type="bearer"
-    )
-
-
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_info(
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Get information about the currently authenticated user.
-    """
-    return current_user
+    return user
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -109,10 +141,7 @@ async def register(
 ):
     """
     Register a new user account.
-    
-    Note: In production, this endpoint should be restricted or require admin approval.
     """
-    # Check if email already exists
     existing_user = await AuthService.get_user_by_email(db, user_data.email)
     if existing_user:
         raise HTTPException(
@@ -120,7 +149,6 @@ async def register(
             detail="Email already registered"
         )
     
-    # Create user
     user = await AuthService.create_user(
         db,
         email=user_data.email,
@@ -134,12 +162,45 @@ async def register(
 
 @router.post("/logout")
 async def logout(
-    current_user: User = Depends(get_current_user)
+    response: Response,
+    session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME)
 ):
     """
-    Logout the current user.
-    
-    Note: JWT tokens are stateless, so this is mainly for client-side token cleanup.
-    In production, you might want to add token blacklisting with Redis.
+    Logout the current user. Clears the session cookie.
     """
-    return {"message": "Successfully logged out"}
+    if session_id:
+        delete_session(session_id)
+    
+    response.delete_cookie(key=SESSION_COOKIE_NAME)
+    
+    return {"success": True, "message": "Successfully logged out"}
+
+
+@router.get("/check")
+async def check_auth(
+    session_id: Optional[str] = Cookie(None, alias=SESSION_COOKIE_NAME),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Check if the current session is valid.
+    """
+    if not session_id:
+        return {"authenticated": False}
+    
+    session = get_session(session_id)
+    if not session:
+        return {"authenticated": False}
+    
+    user = await AuthService.get_user_by_id(db, session["user_id"])
+    if not user or not user.is_active:
+        return {"authenticated": False}
+    
+    return {
+        "authenticated": True,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role.value
+        }
+    }
