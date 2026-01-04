@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.database import init_db
-from app.routers import auth, nodes, recordings, alerts, dashboard, users
+from app.routers import auth, nodes, recordings, alerts, dashboard, users, mobile
 
 settings = get_settings()
 
@@ -62,6 +62,7 @@ app.include_router(nodes.router, prefix="/api/nodes", tags=["Nodes"])
 app.include_router(recordings.router, prefix="/api/recordings", tags=["Recordings"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
+app.include_router(mobile.router, prefix="/api/mobile", tags=["Mobile"])
 
 
 @app.get("/api/health")

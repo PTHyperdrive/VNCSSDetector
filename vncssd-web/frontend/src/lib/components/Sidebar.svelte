@@ -13,9 +13,15 @@
     const navItems: NavItem[] = [
         { href: "/", label: "Dashboard", icon: "home" },
         { href: "/nodes", label: "Nodes", icon: "server" },
-        { href: "/recordings", label: "Ghi âm", icon: "mic" },
+        { href: "/recordings", label: "Bản ghi", icon: "document" },
         { href: "/alerts", label: "Cảnh báo", icon: "bell" },
-        { href: "/users", label: "Người dùng", icon: "users", adminOnly: true },
+        {
+            href: "/accounts",
+            label: "Tài khoản",
+            icon: "users",
+            adminOnly: true,
+        },
+        { href: "/mobile", label: "Mobile", icon: "mobile" },
         { href: "/settings", label: "Cài đặt", icon: "settings" },
     ];
 
@@ -102,7 +108,7 @@
                                 d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
                             />
                         </svg>
-                    {:else if item.icon === "mic"}
+                    {:else if item.icon === "document"}
                         <svg
                             class="w-5 h-5"
                             fill="none"
@@ -113,7 +119,7 @@
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                         </svg>
                     {:else if item.icon === "bell"}
@@ -142,6 +148,20 @@
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            />
+                        </svg>
+                    {:else if item.icon === "mobile"}
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
                             />
                         </svg>
                     {:else if item.icon === "settings"}
