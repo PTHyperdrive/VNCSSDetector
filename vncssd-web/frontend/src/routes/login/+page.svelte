@@ -104,7 +104,7 @@
                         id="email"
                         bind:value={email}
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        placeholder="admin@vncssd.notrespond.com"
+                        placeholder="username@vncssd.notrespond.com"
                         required
                     />
                 </div>
@@ -160,12 +160,6 @@
                     {/if}
                 </button>
             </form>
-
-            <div class="mt-6 text-center text-sm text-gray-500">
-                Email format: <span class="text-blue-600"
-                    >username@vncssd.notrespond.com</span
-                >
-            </div>
         </div>
 
         <!-- Footer -->
