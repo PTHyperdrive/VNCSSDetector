@@ -49,8 +49,9 @@ class ApiClient {
 
         if (!response.ok) {
             if (response.status === 401) {
+                // Don't redirect here - let the auth store/layout handle it
+                // This prevents redirect loops
                 this.setToken(null);
-                window.location.href = '/login';
                 throw new Error('Unauthorized');
             }
 
