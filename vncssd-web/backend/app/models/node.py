@@ -14,13 +14,13 @@ from app.database import Base
 
 class DeviceType(str, PyEnum):
     """Supported device types."""
-    ORBIC = "ORBIC"
-    TPLINK = "TPLINK"
-    TMOBILE = "TMOBILE"
-    WINGTECH = "WINGTECH"
-    PINEPHONE = "PINEPHONE"
-    MSM8916 = "MSM8916"
-    OTHER = "OTHER"
+    ORBIC = "orbic"
+    TPLINK = "tplink"
+    TMOBILE = "tmobile"
+    WINGTECH = "wingtech"
+    PINEPHONE = "pinephone"
+    MSM8916 = "msm8916"
+    OTHER = "other"
 
 
 class NodeStatus(str, PyEnum):
@@ -39,8 +39,8 @@ class Node(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     uuid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    device_type: Mapped[DeviceType] = mapped_column(
-        Enum(DeviceType), 
+    device_type: Mapped[str] = mapped_column(
+        String(50), 
         nullable=False, 
         index=True
     )
