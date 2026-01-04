@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS system_logs (
     node_id BIGINT UNSIGNED,
     level ENUM('debug', 'info', 'warning', 'error') NOT NULL,
     source VARCHAR(100) NOT NULL,
+    
     message TEXT NOT NULL,
     extra_data JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -160,7 +161,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- ============================================
 INSERT INTO users (email, password_hash, full_name, role, is_active)
 VALUES (
-    'admin@vncssd.local',
+    'admin@vncssd.notrespond.com',
     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.a5J0mKqQoXYfHi',
     'System Administrator',
     'admin',

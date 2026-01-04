@@ -79,7 +79,7 @@
                         id="email"
                         bind:value={email}
                         class="input"
-                        placeholder="admin@vncssd.local"
+                        placeholder="admin@vncssd.notrespond.com"
                         required
                         disabled={loading}
                     />
@@ -133,7 +133,7 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     Tài khoản mặc định: <code class="text-primary-600"
-                        >admin@vncssd.local</code
+                        >admin@vncssd.notrespond.com</code
                     >
                 </p>
             </div>
@@ -141,7 +141,7 @@
 
         <!-- Footer -->
         <p class="text-center text-primary-200 text-sm mt-8">
-            © 2024 VNCSSDetector. HUTECH University.
+            © 2026 VNCSSDetector.
         </p>
     </div>
 </div>

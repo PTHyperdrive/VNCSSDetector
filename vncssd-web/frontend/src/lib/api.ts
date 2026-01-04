@@ -54,10 +54,21 @@ class ApiClient {
                 throw new Error('Unauthorized');
             }
 
-            const error: ApiError = await response.json().catch(() => ({
+            const errorData = await response.json().catch(() => ({
                 detail: 'An error occurred'
             }));
-            throw new Error(error.detail);
+            // Handle various error formats from FastAPI
+            let errorMessage = 'An error occurred';
+            if (typeof errorData.detail === 'string') {
+                errorMessage = errorData.detail;
+            } else if (Array.isArray(errorData.detail)) {
+                errorMessage = errorData.detail.map((e: any) => e.msg || e.message || String(e)).join(', ');
+            } else if (typeof errorData.detail === 'object' && errorData.detail?.msg) {
+                errorMessage = errorData.detail.msg;
+            } else if (errorData.message) {
+                errorMessage = errorData.message;
+            }
+            throw new Error(errorMessage);
         }
 
         if (response.status === 204) {
