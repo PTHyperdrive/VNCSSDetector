@@ -23,10 +23,7 @@ class ApiClient {
 
         if (!response.ok) {
             if (response.status === 401) {
-                // Redirect to login if not authenticated
-                if (window.location.pathname !== '/login') {
-                    window.location.href = '/login';
-                }
+                // Don't auto-redirect - let the layout/auth store handle it
                 throw new Error('Unauthorized');
             }
 

@@ -17,8 +17,8 @@
 
             if (result.success) {
                 // Cookie is automatically set by the server
-                // Just redirect to dashboard
-                goto("/");
+                // Use window.location for reliable redirect with full page reload
+                window.location.href = "/";
             } else {
                 // Display error message (Vietnamese)
                 if (
