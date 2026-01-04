@@ -32,14 +32,20 @@
         // @ts-ignore
         await import("leaflet/dist/leaflet.css");
 
-        // Center on HCM City - Nguyễn Tri Phương area
-        map = L.map(mapContainer).setView([10.765, 106.665], 15);
+        // Center on user-specified coordinates
+        map = L.map(mapContainer).setView(
+            [10.76950491413405, 106.66356222364968],
+            15,
+        );
 
         // Add OpenStreetMap tiles
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution:
                 '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
+
+        // Collect bounds for auto-fit
+        const markers: any[] = [];
 
         // Add node markers
         nodes.forEach((node) => {
@@ -65,6 +71,8 @@
                     { icon },
                 ).addTo(map);
 
+                markers.push(marker);
+
                 marker.bindPopup(`
                     <div style="min-width: 200px">
                         <strong>${node.name}</strong><br/>
@@ -75,6 +83,12 @@
                 `);
             }
         });
+
+        // Auto-fit bounds to show all markers
+        if (markers.length > 0) {
+            const group = L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
     }
 
     function getMarkerColor(status: string) {
