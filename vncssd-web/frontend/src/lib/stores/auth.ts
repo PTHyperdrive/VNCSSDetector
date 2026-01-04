@@ -39,9 +39,10 @@ function createAuthStore() {
         async login(email: string, password: string) {
             update(s => ({ ...s, loading: true }));
             try {
+                // Just login and store the token
+                // The initialize() will fetch user data on next page load
                 await api.login(email, password);
-                const user = await api.getCurrentUser();
-                set({ user, loading: false, initialized: true });
+                update(s => ({ ...s, loading: false }));
                 return { success: true };
             } catch (error) {
                 update(s => ({ ...s, loading: false }));
