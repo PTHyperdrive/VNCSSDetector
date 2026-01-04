@@ -44,9 +44,9 @@ class Node(Base):
         nullable=False, 
         index=True
     )
-    status: Mapped[NodeStatus] = mapped_column(
-        Enum(NodeStatus), 
-        default=NodeStatus.OFFLINE, 
+    status: Mapped[str] = mapped_column(
+        String(20), 
+        default="offline", 
         index=True
     )
     ip_address: Mapped[Optional[str]] = mapped_column(String(45))
