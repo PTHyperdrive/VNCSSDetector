@@ -162,10 +162,7 @@
                                 Danh Sách Nodes
                             </h2>
                             {#if $isOperator}
-                                <a
-                                    href="/nodes/new"
-                                    class="btn-primary text-sm"
-                                >
+                                <a href="/nodes" class="btn-primary text-sm">
                                     + Thêm Node
                                 </a>
                             {/if}

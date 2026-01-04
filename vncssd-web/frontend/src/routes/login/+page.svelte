@@ -162,8 +162,8 @@
             </form>
 
             <div class="mt-6 text-center text-sm text-gray-500">
-                Tài khoản mặc định: <span class="text-blue-600"
-                    >admin@vncssd.notrespond.com</span
+                Email format: <span class="text-blue-600"
+                    >username@vncssd.notrespond.com</span
                 >
             </div>
         </div>
