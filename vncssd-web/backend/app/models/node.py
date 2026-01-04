@@ -14,13 +14,13 @@ from app.database import Base
 
 class DeviceType(str, PyEnum):
     """Supported device types."""
-    ORBIC = "orbic"
-    TPLINK = "tplink"
-    TMOBILE = "tmobile"
-    WINGTECH = "wingtech"
-    PINEPHONE = "pinephone"
-    MSM8916 = "msm8916"
-    OTHER = "other"
+    ORBIC = "ORBIC"
+    TPLINK = "TPLINK"
+    TMOBILE = "TMOBILE"
+    WINGTECH = "WINGTECH"
+    PINEPHONE = "PINEPHONE"
+    MSM8916 = "MSM8916"
+    OTHER = "OTHER"
 
 
 class NodeStatus(str, PyEnum):
