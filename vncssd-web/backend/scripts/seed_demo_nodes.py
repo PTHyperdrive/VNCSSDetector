@@ -1,6 +1,6 @@
 """
 VNCSSDetector Web Service - Seed Demo Nodes
-Run this script to add 100 demo nodes along Nguyễn Tri Phương street
+Run this script to delete old nodes and add 100 demo nodes around specified coordinates
 """
 import asyncio
 import random
@@ -8,53 +8,55 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
 from app.database import async_session_maker, init_db
-from app.models.node import Node, DeviceType, NodeStatus
+from app.models.node import Node
 
-# Nguyễn Tri Phương street coordinates (HCM - from District 5 to District 10)
-# Approximate lat/lng range
-NTP_LAT_START = 10.7580  # Near Đại học Y
-NTP_LAT_END = 10.7720    # Near Lê Hồng Phong
-NTP_LNG_START = 106.6620
-NTP_LNG_END = 106.6680
+# Center coordinates (user specified)
+CENTER_LAT = 10.76950491413405
+CENTER_LNG = 106.66356222364968
+
+# Spread radius (~500m in each direction)
+SPREAD_LAT = 0.005  # ~555m
+SPREAD_LNG = 0.005  # ~500m
 
 DEVICE_TYPES = [
-    DeviceType.ORBIC,
-    DeviceType.TPLINK, 
-    DeviceType.TMOBILE,
-    DeviceType.WINGTECH,
-    DeviceType.PINEPHONE,
-    DeviceType.MSM8916,
+    "orbic",
+    "tplink", 
+    "tmobile",
+    "wingtech",
+    "pinephone",
+    "msm8916",
 ]
 
-STATUSES = [NodeStatus.ONLINE, NodeStatus.OFFLINE, NodeStatus.WARNING, NodeStatus.ERROR]
+STATUSES = ["online", "offline", "warning", "error"]
 STATUS_WEIGHTS = [0.7, 0.15, 0.1, 0.05]  # 70% online
 
 
 async def create_demo_nodes():
-    """Create 100 demo nodes along Nguyễn Tri Phương street."""
+    """Delete old nodes and create 100 demo nodes around center coordinates."""
     await init_db()
     
     async with async_session_maker() as session:
         try:
+            # Delete old demo nodes
+            print("Deleting old NTP nodes...")
+            await session.execute(delete(Node).where(Node.name.like("NTP-%")))
+            await session.commit()
+            print("✅ Deleted old nodes")
+            
             print("Creating 100 demo nodes...")
             
             for i in range(1, 101):
-                # Calculate position along the street
-                progress = i / 100
-                lat = NTP_LAT_START + (NTP_LAT_END - NTP_LAT_START) * progress
-                lng = NTP_LNG_START + (NTP_LNG_END - NTP_LNG_START) * progress
-                
-                # Add some randomness
-                lat += random.uniform(-0.0005, 0.0005)
-                lng += random.uniform(-0.0005, 0.0005)
+                # Random position around center
+                lat = CENTER_LAT + random.uniform(-SPREAD_LAT, SPREAD_LAT)
+                lng = CENTER_LNG + random.uniform(-SPREAD_LNG, SPREAD_LNG)
                 
                 # Random status based on weights
                 status = random.choices(STATUSES, STATUS_WEIGHTS)[0]
                 
                 # Random last seen
-                if status == NodeStatus.ONLINE:
+                if status == "online":
                     last_seen = datetime.utcnow() - timedelta(minutes=random.randint(0, 5))
                 else:
                     last_seen = datetime.utcnow() - timedelta(hours=random.randint(1, 48))
@@ -71,11 +73,12 @@ async def create_demo_nodes():
                 )
                 session.add(node)
                 
-                if i % 10 == 0:
+                if i % 20 == 0:
                     print(f"  Created {i} nodes...")
             
             await session.commit()
             print("✅ Successfully created 100 demo nodes!")
+            print(f"📍 Center: {CENTER_LAT}, {CENTER_LNG}")
             
         except Exception as e:
             await session.rollback()
