@@ -1,5 +1,6 @@
 <script lang="ts">
     import { auth } from "$lib/stores/auth";
+    import { api } from "$lib/api";
 
     let email = $state("");
     let password = $state("");
@@ -15,8 +16,15 @@
             const result = await auth.login(email, password);
 
             if (result.success) {
-                // Force navigation using window.location for reliable redirect
-                window.location.href = "/";
+                // Verify token was stored
+                const token = api.getToken();
+                if (token) {
+                    // Small delay to ensure localStorage is persisted
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    window.location.href = "/";
+                } else {
+                    error = "Lỗi lưu token. Vui lòng thử lại.";
+                }
             } else {
                 // Display error message (Vietnamese)
                 if (
