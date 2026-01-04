@@ -11,7 +11,7 @@
     let showAddModal = $state(false);
     let newNode = $state({
         name: "",
-        device_type: "android",
+        device_type: "orbic_rc400l",
         location_name: "",
     });
     let addingNode = $state(false);
@@ -417,10 +417,19 @@
                         bind:value={newNode.device_type}
                         class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                     >
-                        <option value="android">Android</option>
-                        <option value="pixel">Pixel</option>
-                        <option value="raspberry_pi">Raspberry Pi</option>
-                        <option value="linux_pc">Linux PC</option>
+                        <option value="orbic_rc400l">Orbic/Kajeet RC400L</option
+                        >
+                        <option value="tplink_m7350">TP-Link M7350</option>
+                        <option value="tplink_m7310">TP-Link M7310</option>
+                        <option value="tmobile_tmohs1">Tmobile TMOHS1</option>
+                        <option value="uz801">UZ801</option>
+                        <option value="wingtech_ct2mhs01"
+                            >Wingtech CT2MHS01</option
+                        >
+                        <option value="pinephone"
+                            >PinePhone / PinePhone Pro</option
+                        >
+                        <option value="moxee_hotspot">Moxee Hotspot</option>
                     </select>
                 </div>
                 <div class="flex gap-3 pt-4">
