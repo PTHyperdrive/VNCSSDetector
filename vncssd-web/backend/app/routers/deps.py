@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
-from app.routers.auth import get_session, SESSION_COOKIE_NAME
+from app.services.session import get_session, SESSION_COOKIE_NAME
 
 
 async def get_current_user(
