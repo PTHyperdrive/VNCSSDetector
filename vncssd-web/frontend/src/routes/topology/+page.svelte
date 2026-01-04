@@ -78,7 +78,7 @@
                         <strong>${node.name}</strong><br/>
                         <span style="color: ${color}">● ${getStatusText(node.status)}</span><br/>
                         <small>${node.device_type}</small><br/>
-                        <small>📍 ${Number(node.location_lat).toFixed(6)}, ${Number(node.location_lng).toFixed(6)}</small>
+                        <small>📍 ${parseFloat(node.location_lat).toFixed(6)}, ${parseFloat(node.location_lng).toFixed(6)}</small>
                     </div>
                 `);
             }
