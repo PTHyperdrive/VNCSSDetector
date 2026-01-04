@@ -5,8 +5,8 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,9 +16,6 @@ from app.schemas.user import TokenData
 
 settings = get_settings()
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class AuthService:
     """Authentication and authorization service."""
@@ -26,12 +23,21 @@ class AuthService:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            return bcrypt.checkpw(
+                plain_password.encode('utf-8'), 
+                hashed_password.encode('utf-8')
+            )
+        except Exception:
+            return False
     
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password."""
-        return pwd_context.hash(password)
+        return bcrypt.hashpw(
+            password.encode('utf-8'), 
+            bcrypt.gensalt()
+        ).decode('utf-8')
     
     @staticmethod
     def create_access_token(
@@ -160,10 +166,19 @@ class AuthService:
     def generate_api_key() -> tuple[str, str]:
         """Generate an API key and return (plain_key, hashed_key)."""
         plain_key = secrets.token_urlsafe(32)
-        hashed_key = pwd_context.hash(plain_key)
+        hashed_key = bcrypt.hashpw(
+            plain_key.encode('utf-8'), 
+            bcrypt.gensalt()
+        ).decode('utf-8')
         return plain_key, hashed_key
     
     @staticmethod
     def verify_api_key(plain_key: str, hashed_key: str) -> bool:
         """Verify an API key against its hash."""
-        return pwd_context.verify(plain_key, hashed_key)
+        try:
+            return bcrypt.checkpw(
+                plain_key.encode('utf-8'), 
+                hashed_key.encode('utf-8')
+            )
+        except Exception:
+            return False
