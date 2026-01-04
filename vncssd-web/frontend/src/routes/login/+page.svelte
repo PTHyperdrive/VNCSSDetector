@@ -1,6 +1,5 @@
 <script lang="ts">
     import { auth } from "$lib/stores/auth";
-    import { goto } from "$app/navigation";
 
     let email = $state("");
     let password = $state("");
@@ -12,15 +11,34 @@
         error = "";
         loading = true;
 
-        const result = await auth.login(email, password);
+        try {
+            const result = await auth.login(email, password);
 
-        if (result.success) {
-            goto("/");
-        } else {
-            error = result.error || "Đăng nhập thất bại";
+            if (result.success) {
+                // Force navigation using window.location for reliable redirect
+                window.location.href = "/";
+            } else {
+                // Display error message (Vietnamese)
+                if (
+                    result.error?.includes("Incorrect") ||
+                    result.error?.includes("401")
+                ) {
+                    error = "Email hoặc mật khẩu không đúng";
+                } else if (
+                    result.error?.includes("not a valid email") ||
+                    result.error?.includes("422")
+                ) {
+                    error = "Email không hợp lệ";
+                } else {
+                    error = result.error || "Đăng nhập thất bại";
+                }
+            }
+        } catch (err) {
+            error = "Đã xảy ra lỗi. Vui lòng thử lại.";
+            console.error("Login error:", err);
+        } finally {
+            loading = false;
         }
-
-        loading = false;
     }
 </script>
 
